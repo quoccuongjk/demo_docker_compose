@@ -1,99 +1,62 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import './App.css';
+import './App.css';  // Nhập tệp CSS
 
 function App() {
-    const [items, setItems] = useState([]);
-    const [newItem, setNewItem] = useState('');
-    const [editItem, setEditItem] = useState({ id: null, name: '' });
-    const [isEditing, setIsEditing] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [name, setName] = useState('');
+  const [age, setAge] = useState('');
 
-    useEffect(() => {
-        fetchItems();
-    }, []);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-    const fetchItems = async () => {
-        try {
-            const response = await axios.get('http://localhost:5000/items');
-            setItems(response.data);
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
-    };
+  const fetchData = async () => {
+    const result = await axios.get('http://localhost:5000/api/users');
+    setUsers(result.data);
+  };
 
-    const addItem = async () => {
-        if (!newItem) return;
-        try {
-            await axios.post('http://localhost:5000/items', { name: newItem });
-            setNewItem('');
-            fetchItems();
-        } catch (error) {
-            console.error('Error adding item:', error);
-        }
-    };
+  const addUser = async () => {
+    await axios.post('http://localhost:5000/api/users', { name, age: parseInt(age) });
+    fetchData();  
+    setName('');
+    setAge('');
+  };
 
-    const updateItem = async () => {
-        if (!editItem.name) return;
-        try {
-            await axios.put(`http://localhost:5000/items/${editItem.id}`, { name: editItem.name });
-            setEditItem({ id: null, name: '' });
-            setIsEditing(false);
-            fetchItems();
-        } catch (error) {
-            console.error('Error updating item:', error);
-        }
-    };
+  const deleteUser = async (userId) => {
+    await axios.delete(`http://localhost:5000/api/users/${userId}`);
+    fetchData();  
+  };
 
-    const deleteItem = async (id) => {
-        try {
-            await axios.delete(`http://localhost:5000/items/${id}`);
-            fetchItems();
-        } catch (error) {
-            console.error('Error deleting item:', error);
-        }
-    };
-
-    return (
-        <div className="app-container">
-            <h1>Danh Sách Items</h1>
-            <div className="input-group">
-                <input
-                    type="text"
-                    value={newItem}
-                    onChange={(e) => setNewItem(e.target.value)}
-                    placeholder="Thêm item mới"
-                />
-                <button onClick={addItem}>Thêm</button>
-            </div>
-
-            {isEditing && (
-                <div className="edit-group">
-                    <input
-                        type="text"
-                        value={editItem.name}
-                        onChange={(e) => setEditItem({ ...editItem, name: e.target.value })}
-                        placeholder="Tên item cần sửa"
-                    />
-                    <button onClick={updateItem}>Cập Nhật</button>
-                </div>
-            )}
-
-            <ul className="item-list">
-                {items.map(item => (
-                    <li key={item.id}>
-                        {item.name}
-                        <div className="button-group">
-                            <button onClick={() => {
-                                setEditItem({ id: item.id, name: item.name });
-                                setIsEditing(true);
-                            }}>Sửa</button>
-                            <button onClick={() => deleteItem(item.id)}>Xóa</button>
-                        </div>
-                    </li>
-                ))}
-            </ul>
-        </div>
-    );
+  return (
+    <div className="container">
+      <h1>User List</h1>
+      <ul>
+        {users.map(user => (
+          <li key={user[0]}>
+            {user[1]} - {user[2]} 
+            <button onClick={() => deleteUser(user[0])}>Delete</button>
+          </li>
+        ))}
+      </ul>
+      <h2>Add User</h2>
+      <div className="add-user-container">
+        <input 
+          type="text" 
+          placeholder="Name" 
+          value={name} 
+          onChange={(e) => setName(e.target.value)} 
+        />
+        <input 
+          type="number" 
+          placeholder="Age" 
+          value={age} 
+          onChange={(e) => setAge(e.target.value)} 
+        />
+        <button onClick={addUser}>Add User</button>
+      </div>
+    </div>
+  );
 }
 
 export default App;
